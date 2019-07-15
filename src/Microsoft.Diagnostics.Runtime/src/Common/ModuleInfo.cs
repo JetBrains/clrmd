@@ -47,10 +47,15 @@ namespace Microsoft.Diagnostics.Runtime
         /// </summary>
         public int IndexTimeStamp { get; }
 
+        private string _fileName;
         /// <summary>
         /// Gets the file name of the module on disk.
         /// </summary>
-        public string? FileName { get; }
+        public  string FileName
+        {
+            get => _fileName ?? string.Empty;
+            set => _fileName = value;
+        }
 
         /// <summary>
         /// Returns a <see cref="PEImage"/> from a stream constructed using instance fields of this object.
