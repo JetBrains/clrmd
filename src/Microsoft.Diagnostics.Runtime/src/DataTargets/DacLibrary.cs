@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Diagnostics.Runtime.DacInterface;
 using Microsoft.Diagnostics.Runtime.Utilities;
@@ -76,9 +77,12 @@ namespace Microsoft.Diagnostics.Runtime
             if (dataTarget.ClrVersions.Count == 0)
                 throw new ClrDiagnosticsException("Process is not a CLR process!");
 
+            if (!File.Exists(dacDll))
+                throw new ClrDiagnosticsException("Dac file doesn't exist: " + dacDll);
+
             IntPtr dacLibrary = DataTarget.PlatformFunctions.LoadLibrary(dacDll);
             if (dacLibrary == IntPtr.Zero)
-                throw new ClrDiagnosticsException("Failed to load dac: " + dacLibrary);
+                throw new ClrDiagnosticsException("Failed to load Dac: " + dacDll);
 
             OwningLibrary = new RefCountedFreeLibrary(dacLibrary);
             dataTarget.AddDacLibrary(this);
@@ -108,7 +112,7 @@ namespace Microsoft.Diagnostics.Runtime
             int res = func(ref guid, DacDataTarget.IDacDataTarget, out IntPtr iUnk);
 
             if (res != 0)
-                throw new ClrDiagnosticsException("Failure loading DAC: CreateDacInstance failed 0x" + res.ToString("x"), ClrDiagnosticsExceptionKind.DacError, res);
+                throw new ClrDiagnosticsException("Failure loading Dac: CreateDacInstance failed 0x" + res.ToString("x"), ClrDiagnosticsExceptionKind.DacError, res);
 
             InternalDacPrivateInterface = new ClrDataProcess(this, iUnk);
         }
