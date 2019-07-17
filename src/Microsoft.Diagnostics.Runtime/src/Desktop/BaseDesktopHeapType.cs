@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.Diagnostics.Runtime.DacInterface;
 
 namespace Microsoft.Diagnostics.Runtime.Desktop
@@ -60,6 +61,8 @@ namespace Microsoft.Diagnostics.Runtime.Desktop
         }
 
         internal DesktopGCHeap DesktopHeap { get; set; }
+
+        [CanBeNull]
         internal DesktopBaseModule DesktopModule { get; set; }
 
         public override ClrElementType ElementType

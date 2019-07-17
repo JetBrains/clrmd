@@ -499,8 +499,10 @@ namespace Microsoft.Diagnostics.Runtime.Desktop
             }
         }
 
+        [CanBeNull]
         public ClrModule Mscorlib => _mscorlib.Value;
 
+        [CanBeNull]
         private ClrModule GetMscorlib()
         {
             ClrModule mscorlib = null;
@@ -508,8 +510,8 @@ namespace Microsoft.Diagnostics.Runtime.Desktop
                 ? "system.private.corelib"
                 : "mscorlib";
 
-            foreach (ClrModule module in _modules.Values)
-                if (module.Name.ToLowerInvariant().Contains(moduleName))
+            foreach (DesktopModule module in _modules.Values)
+                if (module.Name != null && module.Name.ToLowerInvariant().Contains(moduleName))
                 {
                     mscorlib = module;
                     break;
@@ -519,14 +521,17 @@ namespace Microsoft.Diagnostics.Runtime.Desktop
             {
                 IAppDomainStoreData ads = GetAppDomainStoreData();
                 IAppDomainData sharedDomain = GetAppDomainData(ads.SharedDomain);
-                foreach (ulong assembly in GetAssemblyList(ads.SharedDomain, sharedDomain.AssemblyCount))
+                if (sharedDomain != null)
                 {
-                    string name = GetAssemblyName(assembly);
-                    if (name.ToLowerInvariant().Contains(moduleName))
+                    foreach (ulong assembly in GetAssemblyList(ads.SharedDomain, sharedDomain.AssemblyCount))
                     {
-                        IAssemblyData assemblyData = GetAssemblyData(ads.SharedDomain, assembly);
-                        ulong module = GetModuleList(assembly, assemblyData.ModuleCount).Single();
-                        mscorlib = GetModule(module);
+                        string name = GetAssemblyName(assembly);
+                        if (name != null && name.ToLowerInvariant().Contains(moduleName))
+                        {
+                            IAssemblyData assemblyData = GetAssemblyData(ads.SharedDomain, assembly);
+                            ulong module = GetModuleList(assembly, assemblyData.ModuleCount).Single();
+                            mscorlib = GetModule(module);
+                        }
                     }
                 }
             }

@@ -249,6 +249,9 @@ namespace Microsoft.Diagnostics.Runtime.Desktop
             IDomainLocalModuleData data = null;
             if (shared)
             {
+                if (_containingType.DesktopModule == null)
+                    return 0;
+
                 ulong id = _containingType.DesktopModule.ModuleId;
                 data = _containingType.DesktopHeap.DesktopRuntime.GetDomainLocalModuleById(appDomain.Address, id);
                 if (!IsInitialized(data))
@@ -280,6 +283,9 @@ namespace Microsoft.Diagnostics.Runtime.Desktop
 
             if (!_containingType.Shared)
                 return true;
+
+            if (_containingType.DesktopModule == null)
+                return false;
 
             ulong id = _containingType.DesktopModule.ModuleId;
             IDomainLocalModuleData data = _containingType.DesktopHeap.DesktopRuntime.GetDomainLocalModuleById(appDomain.Address, id);

@@ -86,6 +86,9 @@ namespace Microsoft.Diagnostics.Runtime.Desktop
 
         private IEnumerable<ulong> FillAndEnumerateTypeHandles()
         {
+            if (Module == null)
+                yield break;
+
             IList<ClrAppDomain> domains = null;
             if (_methodTables == null)
             {
@@ -99,6 +102,9 @@ namespace Microsoft.Diagnostics.Runtime.Desktop
                 {
                     if (domains == null)
                         domains = Module.AppDomains;
+
+                    if (DesktopModule == null)
+                        continue;
 
                     ulong value = ((DesktopModule)DesktopModule).GetMTForDomain(domains[i], this);
                     _methodTables[i] = value != 0 ? value : ulong.MaxValue;
