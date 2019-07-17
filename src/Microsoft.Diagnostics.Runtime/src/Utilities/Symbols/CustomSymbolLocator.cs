@@ -109,7 +109,7 @@ namespace Microsoft.Diagnostics.Runtime.Utilities
                         return target;
                     }
                 }
-                else
+                else if (element.Target != null)
                 {
                     var filePath = Path.Combine(element.Target, fileName);
                     if (ValidateBinary(filePath, buildTimeStamp, imageSize, checkProperties))
@@ -220,7 +220,11 @@ namespace Microsoft.Diagnostics.Runtime.Utilities
                 return ret;
 
             // See if we have a file that tells us to redirect elsewhere. 
-            var filePtrSigPath = Path.Combine(Path.GetDirectoryName(fileIndexPath), "file.ptr");
+            var directoryName = Path.GetDirectoryName(fileIndexPath);
+            if (directoryName == null)
+                return null;
+
+            var filePtrSigPath = Path.Combine(directoryName, "file.ptr");
             var filePtrData = GetPhysicalFileFromServer(urlForServer, filePtrSigPath, cache, true);
             if (filePtrData == null) return null;
 
