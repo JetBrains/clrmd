@@ -341,7 +341,7 @@ namespace Microsoft.Diagnostics.Runtime
             {
                 PlatformFunctions.GetFileVersion(dacFilename, out int major, out int minor, out int revision, out int patch);
                 if (major != clrInfo.Version.Major || minor != clrInfo.Version.Minor || revision != clrInfo.Version.Revision || patch != clrInfo.Version.Patch)
-                    throw new InvalidOperationException($"Mismatched dac. Version: {major}.{minor}.{revision}.{patch}");
+                    throw new InvalidOperationException($"Mismatched dac. Expected: {clrInfo.Version.Major}.{clrInfo.Version.Minor}.{clrInfo.Version.Revision}.{clrInfo.Version.Patch}. Actual: {major}.{minor}.{revision}.{patch}");
             }
 
             return ConstructRuntime(clrInfo, dacFilename);
