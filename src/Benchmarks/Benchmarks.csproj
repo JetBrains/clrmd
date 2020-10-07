@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\Microsoft.Diagnostics.Runtime.snk</AssemblyOriginatorKeyFile>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net461</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -16,12 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Diagnostics.Runtime\Microsoft.Diagnostics.Runtime.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="..\..\Microsoft.Diagnostics.Runtime.snk">
-      <Link>Microsoft.Diagnostics.Runtime.snk</Link>
-    </None>
   </ItemGroup>
 
 </Project>
