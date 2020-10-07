@@ -255,9 +255,11 @@ namespace Microsoft.Diagnostics.Runtime.Tests
 
             // Act
             DateTime[] datetimes = structArray.ReadValues<DateTime>(0, structArray.Length - fromEnd);
+            DateTime[] expected = new DateTime[originalArray.Length - fromEnd];
+            Array.Copy(originalArray, expected, expected.Length);
 
             // Assert
-            Assert.Equal(originalArray[..^fromEnd], datetimes);
+            Assert.Equal(expected, datetimes);
         }
 
         [Fact]
@@ -271,9 +273,17 @@ namespace Microsoft.Diagnostics.Runtime.Tests
 
             // Act
             DateTime[] datetimes = structArray.ReadValues<DateTime>(fromStart, structArray.Length - fromStart);
+            DateTime[] expected = new DateTime[originalArray.Length - fromStart];
+            Array.Copy(
+                originalArray,
+                fromStart,
+                expected,
+                0,
+                expected.Length
+            );
 
             // Assert
-            Assert.Equal(originalArray[fromStart..], datetimes);
+            Assert.Equal(expected, datetimes);
         }
 
         [Fact]

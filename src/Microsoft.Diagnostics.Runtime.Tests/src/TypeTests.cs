@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Loader;
 using Microsoft.Diagnostics.Runtime.Implementation;
 using Xunit;
 
@@ -588,35 +587,39 @@ namespace Microsoft.Diagnostics.Runtime.Tests
         [WindowsFact]
         public void CollectibleTypeTest()
         {
-            CollectibleAssemblyLoadContext context = new CollectibleAssemblyLoadContext();
+            var testDomain = AppDomain.CreateDomain("TestDomain");
+            var assemblyBytes = File.ReadAllBytes(Assembly.GetExecutingAssembly().Location);
+            
+            var assembly = testDomain.Load(assemblyBytes);
 
-            RuntimeHelpers.RunClassConstructor(context.LoadFromAssemblyPath(Assembly.GetExecutingAssembly().Location)
-                .GetType(typeof(CollectibleUnmanagedStruct).FullName).TypeHandle);
+            RuntimeHelpers.RunClassConstructor(assembly.GetType(typeof(CollectibleUnmanagedStruct).FullName).TypeHandle);
 
             RuntimeHelpers.RunClassConstructor(Assembly.GetExecutingAssembly()
-                .GetType(typeof(UncollectibleUnmanagedStruct).FullName).TypeHandle);
-
+                                                   .GetType(typeof(UncollectibleUnmanagedStruct).FullName).TypeHandle);
+        
             using DataTarget dataTarget = DataTarget.CreateSnapshotAndAttach(Process.GetCurrentProcess().Id);
-
-            ClrHeap heap = dataTarget.ClrVersions.Single(v => v.ModuleInfo.FileName.EndsWith("coreclr.dll", true, null)).CreateRuntime().Heap;
-
+        
+            // ClrHeap heap = dataTarget.ClrVersions.Single(v => v.ModuleInfo.FileName.EndsWith("coreclr.dll", true, null)).CreateRuntime().Heap;
+            ClrHeap heap = dataTarget.ClrVersions.Single(v => v.Flavor == ClrFlavor.Desktop).CreateRuntime().Heap;
+            
+        
             ClrType[] types = heap.EnumerateObjects().Select(obj => obj.Type).ToArray();
-
+        
             ClrType collectibleType = types.Single(type => type?.Name == typeof(CollectibleUnmanagedStruct).FullName);
-
+        
             Assert.False(collectibleType.ContainsPointers);
             Assert.True(collectibleType.IsCollectible);
             Assert.NotEqual(default, collectibleType.LoaderAllocatorHandle);
             ulong obj = dataTarget.DataReader.ReadPointer(collectibleType.LoaderAllocatorHandle);
             Assert.Equal("System.Reflection.LoaderAllocator", heap.GetObjectType(obj).Name);
-
+        
             ClrType uncollectibleType = types.Single(type => type?.Name == typeof(UncollectibleUnmanagedStruct).FullName);
-
+        
             Assert.False(uncollectibleType.ContainsPointers);
             Assert.False(uncollectibleType.IsCollectible);
             Assert.Equal(default, uncollectibleType.LoaderAllocatorHandle);
-
-            context.Unload();
+        
+            AppDomain.Unload(testDomain);
         }
 
         [Fact]
@@ -660,13 +663,6 @@ namespace Microsoft.Diagnostics.Runtime.Tests
         private struct UncollectibleUnmanagedStruct
         {
             public static UncollectibleUnmanagedStruct Instance = default;
-        }
-
-        private sealed class CollectibleAssemblyLoadContext : AssemblyLoadContext
-        {
-            public CollectibleAssemblyLoadContext() : base(true)
-            {
-            }
         }
     }
 

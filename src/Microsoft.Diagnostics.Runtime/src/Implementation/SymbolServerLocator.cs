@@ -18,7 +18,7 @@ namespace Microsoft.Diagnostics.Runtime.Implementation
 
         private readonly string _cache = string.Empty;
         private readonly SymbolPathEntry[] _paths;
-        private readonly Dictionary<string, Task<string?>> _queries = new();
+        private readonly Dictionary<string, Task<string?>> _queries = new Dictionary<string, Task<string?>>();
 
         public SymbolServerLocator()
             : this(null)

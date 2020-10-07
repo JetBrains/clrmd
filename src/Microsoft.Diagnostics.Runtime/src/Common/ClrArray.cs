@@ -211,7 +211,7 @@ namespace Microsoft.Diagnostics.Runtime
             if (Type.ComponentType != null && !Type.ComponentType.IsObjectReference)
                 throw new InvalidOperationException($"{Type} does not contain object references.");
 
-            return Type.Heap.GetObject(ReadValue<nuint>(index));
+            return Type.Heap.GetObject((ulong)ReadValue<UIntPtr>(index));
         }
 
         public ClrObject GetObjectValue(params int[] indices)
@@ -219,7 +219,7 @@ namespace Microsoft.Diagnostics.Runtime
             if (Type.ComponentType != null && !Type.ComponentType.IsObjectReference)
                 throw new InvalidOperationException($"{Type} does not contain object references.");
 
-            return Type.Heap.GetObject(ReadValue<nuint>(indices));
+            return Type.Heap.GetObject((ulong)ReadValue<UIntPtr>(indices));
         }
 
         private unsafe T ReadValue<T>(int index) where T : unmanaged
@@ -238,7 +238,7 @@ namespace Microsoft.Diagnostics.Runtime
                 throw new ArgumentException($"Array {Address:x} was not a one-dimensional array. Type: {Type?.Name ?? "null"}");
 
             int valueOffset = index;
-            int dataByteOffset = 2 * sizeof(nint);
+            int dataByteOffset = 2 * sizeof(IntPtr);
 
             if (IsMultiDimensional)
             {
@@ -268,7 +268,7 @@ namespace Microsoft.Diagnostics.Runtime
                 throw new ArgumentException($"Indices length does not match the array rank. Array {Address:x} Rank = {rank}, {nameof(indices)} Rank = {indices.Length}");
 
             int valueOffset = 0;
-            int dataByteOffset = 2 * sizeof(nint);
+            int dataByteOffset = 2 * sizeof(IntPtr);
 
             if (rank == 1)
             {

@@ -52,9 +52,9 @@ namespace Microsoft.Diagnostics.Runtime
             if (offset > 0)
                 span = span.Slice(offset);
 
-            DebugOnly.Assert(span.Length >= sizeof(nuint));
-            DebugOnly.Assert(unchecked((int)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span))) % sizeof(nuint) == 0);
-            return Unsafe.As<byte, nuint>(ref MemoryMarshal.GetReference(span));
+            DebugOnly.Assert(span.Length >= sizeof(UIntPtr));
+            DebugOnly.Assert(unchecked((int)Unsafe.AsPointer(ref MemoryMarshal.GetReference(span))) % sizeof(UIntPtr) == 0);
+            return (ulong)Unsafe.As<byte, UIntPtr>(ref MemoryMarshal.GetReference(span));
         }
 
         public static unsafe int AsInt32(this Span<byte> span)

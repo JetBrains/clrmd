@@ -26,7 +26,7 @@ namespace Microsoft.Diagnostics.Runtime.Windows
         [ThreadStatic]
         private static (MinidumpSegment Segment, int SegmentIndex) _lastAccessed;
 
-        private readonly object _rvaLock = new();
+        private readonly object _rvaLock = new object();
         private Stream? _rvaStream;
 
         public string DumpPath { get; }
