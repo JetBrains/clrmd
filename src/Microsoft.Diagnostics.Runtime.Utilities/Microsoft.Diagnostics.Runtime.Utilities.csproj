@@ -3,9 +3,12 @@
   <PropertyGroup>
     <NoWarn>1591;1701</NoWarn>
     <IsPackable>true</IsPackable>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\..\eng\Microsoft.Diagnostics.Runtime.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\Microsoft.Diagnostics.Runtime.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <TargetFramework>net461</TargetFramework>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyName>JetBrains.Microsoft.Diagnostics.Runtime.Utilities</AssemblyName>
+    <RootNamespace>JetBrains.Microsoft.Diagnostics.Runtime.Utilities</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,15 +26,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\Microsoft.Diagnostics.Runtime.snk">
+      <Link>Microsoft.Diagnostics.Runtime.snk</Link>
+    </None>
     <None Include="EnumerateTypesExtension.cs" />
     <None Include="StaticRootsExtension.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.7">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
