@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup Condition="'$(ContinuousIntegrationBuild)' == 'true'">
+    <Coverage>true</Coverage>
+    <!-- Workaround for tonerdo/coverlet#363 -->
+    <DeterministicSourcePaths>false</DeterministicSourcePaths>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <LangVersion>Latest</LangVersion>
+    <Features>strict</Features>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <OutputPath>$(MSBuildThisFileDirectory)\bin\$(Configuration)</OutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)\obj</BaseIntermediateOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+  </PropertyGroup>
+</Project>

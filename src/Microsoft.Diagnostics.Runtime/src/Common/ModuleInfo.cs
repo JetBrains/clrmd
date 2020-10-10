@@ -46,16 +46,11 @@ namespace Microsoft.Diagnostics.Runtime
         /// Gets the timestamp of the image used to index it on the symbol server.
         /// </summary>
         public int IndexTimeStamp { get; }
-
-        private string _fileName;
+        
         /// <summary>
         /// Gets the file name of the module on disk.
         /// </summary>
-        public  string FileName
-        {
-            get => _fileName ?? string.Empty;
-            set => _fileName = value;
-        }
+        public string FileName { get; }
 
         /// <summary>
         /// Returns a <see cref="PEImage"/> from a stream constructed using instance fields of this object.
@@ -114,7 +109,7 @@ namespace Microsoft.Diagnostics.Runtime
             }
         }
 
-        public override string? ToString() => FileName;
+        public override string ToString() => FileName;
 
         /// <summary>
         /// Gets the PDB associated with this module.
@@ -172,7 +167,7 @@ namespace Microsoft.Diagnostics.Runtime
             ImageBase = imageBase;
             IndexFileSize = indexFileSize;
             IndexTimeStamp = indexTimeStamp;
-            FileName = fileName;
+            FileName = fileName ?? string.Empty;
             _isVirtual = isVirtual;
             _buildId = buildId;
         }
@@ -193,7 +188,7 @@ namespace Microsoft.Diagnostics.Runtime
             ImageBase = imageBase;
             IndexFileSize = indexFileSize;
             IndexTimeStamp = indexTimeStamp;
-            FileName = fileName;
+            FileName = fileName ?? string.Empty;
             _isVirtual = isVirtual;
             _buildId = buildId;
         }
