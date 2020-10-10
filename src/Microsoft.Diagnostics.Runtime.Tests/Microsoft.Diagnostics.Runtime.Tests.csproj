@@ -4,8 +4,11 @@
     <NoWarn>1701;1702;1705;1591;436</NoWarn>
 
     <!-- This _IS_ a Unit Test Project, but because of build_test_assets.cmd, we don't want to run as part of CI right now -->	
-    <IsUnitTestProject Condition="'$(ContinuousIntegrationBuild)' == 'true'">false</IsUnitTestProject>	
-    <TargetFramework>net461</TargetFramework>
+    <IsUnitTestProject Condition="'$(ContinuousIntegrationBuild)' == 'true'">false</IsUnitTestProject>
+    <SignAssembly>true</SignAssembly>	
+    <AssemblyOriginatorKeyFile>..\..\Microsoft.Diagnostics.Runtime.snk</AssemblyOriginatorKeyFile>	
+    <AssemblyName>JetBrains.Microsoft.Diagnostics.Runtime.Tests</AssemblyName>	
+    <RootNamespace>JetBrains.Microsoft.Diagnostics.Runtime.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,14 +17,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\Microsoft.Diagnostics.Runtime.snk">
+      <Link>Microsoft.Diagnostics.Runtime.snk</Link>
+    </None>
     <None Include="..\TestTargets\*\*.cs">
       <Link>data\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoFixture" Version="4.11.0" />
-    <PackageReference Include="AutoFixture.Xunit2" Version="4.11.0" />
+    <PackageReference Include="AutoFixture" Version="4.14.0" />
+    <PackageReference Include="AutoFixture.Xunit2" Version="4.14.0" />
+    <PackageReference Include="xunit" Version="2.4.1" />
   </ItemGroup>
 
 <!--
