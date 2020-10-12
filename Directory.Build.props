@@ -14,8 +14,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <OutputPath>$(MSBuildThisFileDirectory)\bin\$(Configuration)</OutputPath>
-    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)\obj</BaseIntermediateOutputPath>
+    <OutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)</OutputPath>
+    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
