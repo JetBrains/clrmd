@@ -8,6 +8,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyName>JetBrains.Microsoft.Diagnostics.Runtime.Utilities</AssemblyName>
     <RootNamespace>JetBrains.Microsoft.Diagnostics.Runtime.Utilities</RootNamespace>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
