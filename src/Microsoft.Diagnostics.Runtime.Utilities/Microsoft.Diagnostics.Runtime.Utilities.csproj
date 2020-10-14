@@ -5,7 +5,7 @@
     <IsPackable>true</IsPackable>
     <AssemblyOriginatorKeyFile>..\..\Microsoft.Diagnostics.Runtime.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <SignAssembly>true</SignAssembly>
     <AssemblyName>JetBrains.Microsoft.Diagnostics.Runtime.Utilities</AssemblyName>
     <RootNamespace>JetBrains.Microsoft.Diagnostics.Runtime.Utilities</RootNamespace>
