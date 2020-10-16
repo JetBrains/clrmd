@@ -10,13 +10,14 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\Microsoft.Diagnostics.Runtime.snk</AssemblyOriginatorKeyFile>
-    <AssemblyName>JetBrains.Microsoft.Diagnostics.Runtime</AssemblyName>
-    <RootNamespace>JetBrains.Microsoft.Diagnostics.Runtime</RootNamespace>
+    <AssemblyName>JetBrains.Microsoft.Diagnostics.Runtime.V2</AssemblyName>
+    <RootNamespace>JetBrains.Microsoft.Diagnostics.Runtime.V2</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   
   <PropertyGroup>
-    <PackageId>JetBrains.Microsoft.Diagnostics.Runtime</PackageId>
+    <VersionPrefix>2.0.0</VersionPrefix>
+    <PackageId>JetBrains.Microsoft.Diagnostics.Runtime.V2</PackageId>
     <Title>CLR Memory Diagnostics (ClrMD) - JetBrains Fork</Title>
     <Authors>JetBrains</Authors>
     <Owners>JetBrains</Owners>
