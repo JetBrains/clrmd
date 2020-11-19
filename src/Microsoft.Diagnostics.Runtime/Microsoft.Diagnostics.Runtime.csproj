@@ -12,7 +12,6 @@
     <AssemblyOriginatorKeyFile>..\..\Microsoft.Diagnostics.Runtime.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>JetBrains.Microsoft.Diagnostics.Runtime.V2</AssemblyName>
     <RootNamespace>JetBrains.Microsoft.Diagnostics.Runtime.V2</RootNamespace>
-    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   
   <PropertyGroup>
