@@ -4,9 +4,6 @@
 
 using System;
 using System.IO;
-
-#if NETCore_Client
-
 using Microsoft.Diagnostics.NETCore.Client;
 
 namespace Microsoft.Diagnostics.Runtime
@@ -66,5 +63,3 @@ namespace Microsoft.Diagnostics.Runtime
         }
     }
 }
-
-#endif

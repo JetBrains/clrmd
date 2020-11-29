@@ -394,10 +394,10 @@ namespace Microsoft.Diagnostics.Runtime
                 return new DataTarget(customTarget);
             }
 
-            // if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            // {
-            //     return new DataTarget(LinuxSnapshotTarget.CreateSnapshotFromProcess(processId));
-            // }
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return new DataTarget(LinuxSnapshotTarget.CreateSnapshotFromProcess(processId));
+            }
 
             throw GetPlatformException();
         }
