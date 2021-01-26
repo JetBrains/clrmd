@@ -56,5 +56,14 @@
     <None Include="..\..\Microsoft.Diagnostics.Runtime.snk">
       <Link>Microsoft.Diagnostics.Runtime.snk</Link>
     </None>
+    <None Remove="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="obj\**" />
   </ItemGroup>
 </Project>

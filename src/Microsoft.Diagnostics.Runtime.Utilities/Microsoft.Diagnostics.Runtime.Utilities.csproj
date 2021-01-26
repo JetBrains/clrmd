@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Remove="EnumerateTypesExtension.cs" />
     <Compile Remove="StaticRootsExtension.cs" />
+    <Compile Remove="obj\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,10 +31,15 @@
     </None>
     <None Include="EnumerateTypesExtension.cs" />
     <None Include="StaticRootsExtension.cs" />
+    <None Remove="obj\**" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.Diagnostics.Runtime\Microsoft.Diagnostics.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="obj\**" />
   </ItemGroup>
 
 </Project>
