@@ -110,10 +110,56 @@ namespace Microsoft.Diagnostics.Runtime
             return true;
         }
 
-        public int Read(ulong address, Span<byte> buffer) => MemoryReader.Read(address, buffer);
-        public bool Read<T>(ulong address, out T value) where T : unmanaged => MemoryReader.Read(address, out value);
-        public T Read<T>(ulong address) where T : unmanaged => MemoryReader.Read<T>(address);
-        public bool ReadPointer(ulong address, out ulong value) => MemoryReader.ReadPointer(address, out value);
-        public ulong ReadPointer(ulong address) => MemoryReader.ReadPointer(address);
+        public int Read(ulong address, Span<byte> buffer)
+        {
+            if (IntPtr.Size == 4 && (address & 0x80000000) == 0x80000000)
+            {
+                address |= 0xFFFFFFFF00000000;
+            }
+            
+            return MemoryReader.Read(address, buffer);
+        }
+
+        public bool Read<T>(ulong address, out T value)
+            where T : unmanaged
+        {
+            if (IntPtr.Size == 4 && (address & 0x80000000) == 0x80000000)
+            {
+                address |= 0xFFFFFFFF00000000;
+            }
+            
+            return MemoryReader.Read(address, out value);
+        }
+
+        public T Read<T>(ulong address)
+            where T : unmanaged
+        {
+            if (IntPtr.Size == 4 && (address & 0x80000000) == 0x80000000)
+            {
+                address |= 0xFFFFFFFF00000000;
+            }
+            
+            return MemoryReader.Read<T>(address);
+        }
+
+        public bool ReadPointer(ulong address, out ulong value)
+        {
+            if (IntPtr.Size == 4 && (address & 0x80000000) == 0x80000000)
+            {
+                address |= 0xFFFFFFFF00000000;
+            }
+            
+            return MemoryReader.ReadPointer(address, out value);
+        }
+
+        public ulong ReadPointer(ulong address)
+        {
+            if (IntPtr.Size == 4 && (address & 0x80000000) == 0x80000000)
+            {
+                address |= 0xFFFFFFFF00000000;
+            }
+            
+            return MemoryReader.ReadPointer(address);
+        }
     }
 }
