@@ -1496,8 +1496,12 @@ namespace Microsoft.Diagnostics.Runtime.Builders
             CheckDisposed();
 
             // todo remove
-            _sos.GetObjectData(objRef, out ObjectData data);
-            return data;
+            if (_sos.GetObjectData(objRef, out ObjectData data) == HResult.S_OK)
+            {
+                return data;
+            }
+
+            return null;
         }
 
         string? IClrObjectHelpers.ReadString(ulong addr, int maxLength)
