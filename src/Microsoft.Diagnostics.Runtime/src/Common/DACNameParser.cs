@@ -20,7 +20,7 @@ namespace Microsoft.Diagnostics.Runtime.Builders
     // 2) Fast, non-recursive parsing.
     // 3) Accuracy in the face of complex nesting of types, nesting of generic args, etc...
     // 4) Resiliancy to failure (i.e. returns the original DAC name if errors are encountered instead of throwing).
-    internal static class DACNameParser
+    public static class DACNameParser
     {
         private const char GenericAritySpecifier = '`';
         private const char ArgSeperator = ',';
@@ -625,7 +625,7 @@ namespace Microsoft.Diagnostics.Runtime.Builders
                     }
                 case GenericArgListOrArrayEndSpecifier:
                     {
-                        if (curPos != name.Length)
+                        if (curPos + 1 >= name.Length)
                         {
                             if (name[curPos + 1] == GenericArgListOrArrayEndSpecifier)
                                 return (ParsingState.ResolveParsedGenericList, curPos + 2);
