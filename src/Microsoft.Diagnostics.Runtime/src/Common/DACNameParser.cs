@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -20,7 +21,7 @@ namespace Microsoft.Diagnostics.Runtime.Builders
     // 2) Fast, non-recursive parsing.
     // 3) Accuracy in the face of complex nesting of types, nesting of generic args, etc...
     // 4) Resiliancy to failure (i.e. returns the original DAC name if errors are encountered instead of throwing).
-    public static class DACNameParser
+    internal static class DACNameParser
     {
         private const char GenericAritySpecifier = '`';
         private const char ArgSeperator = ',';
@@ -37,175 +38,118 @@ namespace Microsoft.Diagnostics.Runtime.Builders
             if(name.Length == 0)
                 return name;
 
-            // This is the primary method of the parser. It operates as a simple state machine storing information about types encountered as
-            // they are encountered and back-propagating information to types as it is discovered.
-            //
-            // The BEST way to debug/understand this method is to simply step through it while watching genericArgs and nameSegments in the debugger watch window. The TypeNameSegment
-            // has a DebuggerDisplayAttribute so you should see the state of the type as it goes through transitions (i.e. going from simple to generic with a known count of args, as
-            // its unknown args are filled in seeing them appear in the debugger display string as we patch in the actual type names, etc...)
-            ParsingState currentState = ParsingState.ParsingTypeName;
-
-            // The name segment lists hold types as we are constructing them. These can be complete types (such as System.String) or partial types (like List<T> before we have parsed what T is)
-            // or nested types (like the +Entry part of Dictionary<TKey, TEntry>+Entry) which may be later unified with the type they are nested in (we represent parses like Dictionary`2+Entry
-            // as two TypeNameSegments (Dictionary`2 and Entry) and unify them later since when we extract Dictionary we don't yet know its generic arity or the fact it is the outer type in
-            // a nested type).
-            //
-            // The nameSegments relate to top-level type names, the genericArgs relate to generic argument lists as we are parsing them. The genericArgs entries are back-propagated both to earlier
-            // generic args as well as to types in the nameSegments list, as we complete the argument list parsing.
-            List<TypeNameSegment>? nameSegments = null;
-            List<TypeNameSegment>? genericArgs = null;
-
-            // Local helper methods to help minimize code duplication
-            void EnsureNameSegmentList()
+            try
             {
-                if (nameSegments == null)
-                    nameSegments = new List<TypeNameSegment>();
-            }
 
-            void EnsureGenericArgList()
-            {
-                if (genericArgs == null)
-                    genericArgs = new List<TypeNameSegment>();
-            }
+                // This is the primary method of the parser. It operates as a simple state machine storing information about types encountered as
+                // they are encountered and back-propagating information to types as it is discovered.
+                //
+                // The BEST way to debug/understand this method is to simply step through it while watching genericArgs and nameSegments in the debugger watch window. The TypeNameSegment
+                // has a DebuggerDisplayAttribute so you should see the state of the type as it goes through transitions (i.e. going from simple to generic with a known count of args, as
+                // its unknown args are filled in seeing them appear in the debugger display string as we patch in the actual type names, etc...)
+                ParsingState currentState = ParsingState.ParsingTypeName;
 
-            int curPos = 0;
-            int parsingNestedClassDepth = 0;
-            int parsingGenericArgListDepth = 0;
+                // The name segment lists hold types as we are constructing them. These can be complete types (such as System.String) or partial types (like List<T> before we have parsed what T is)
+                // or nested types (like the +Entry part of Dictionary<TKey, TEntry>+Entry) which may be later unified with the type they are nested in (we represent parses like Dictionary`2+Entry
+                // as two TypeNameSegments (Dictionary`2 and Entry) and unify them later since when we extract Dictionary we don't yet know its generic arity or the fact it is the outer type in
+                // a nested type).
+                //
+                // The nameSegments relate to top-level type names, the genericArgs relate to generic argument lists as we are parsing them. The genericArgs entries are back-propagated both to earlier
+                // generic args as well as to types in the nameSegments list, as we complete the argument list parsing.
+                List<TypeNameSegment>? nameSegments = null;
+                List<TypeNameSegment>? genericArgs = null;
 
-            while (ShouldContinueParsing(currentState))
-            {
-                switch (currentState)
+                // Local helper methods to help minimize code duplication
+                void EnsureNameSegmentList()
                 {
-                    case ParsingState.ParsingTypeName:
-                        {
-                            // We are parsing a type name, this is the initial state as well as one entered into every time we are extracting a single type name through the course of parsing.
-                            // This handles parsing nested types as well as generic param types.
-                            //
-                            // Parsing of type names is non-extractive, i.e. we don't substring the input string or create any new heap allocations to track them (apart from the two local
-                            // Lists), we simply remember the extents of the name (start/end).
+                    if (nameSegments == null)
+                        nameSegments = new List<TypeNameSegment>();
+                }
 
-                            int start;
-                            (start, curPos) = GetTypeNameExtent(name, curPos, parsingGenericArgList: parsingGenericArgListDepth != 0);
+                void EnsureGenericArgList()
+                {
+                    if (genericArgs == null)
+                        genericArgs = new List<TypeNameSegment>();
+                }
 
-                            // Special case: Check if after parsing the type name we have exhausted the string, if so it means the input string is the output string, so just return it
-                            // without allocating a copy.
-                            if (ReturnOriginalDACString(curPos, name.Length, nameSegments))
-                                return name;
+                int curPos = 0;
+                int parsingNestedClassDepth = 0;
+                int parsingGenericArgListDepth = 0;
 
-                            bool typeIsNestedClass = (parsingNestedClassDepth != 0);
-                            if (parsingGenericArgListDepth == 0)
+                while (ShouldContinueParsing(currentState))
+                {
+                    switch (currentState)
+                    {
+                        case ParsingState.ParsingTypeName:
                             {
-                                // We are parsing a top-level type name/sequence
-                                EnsureNameSegmentList();
+                                // We are parsing a type name, this is the initial state as well as one entered into every time we are extracting a single type name through the course of parsing.
+                                // This handles parsing nested types as well as generic param types.
+                                //
+                                // Parsing of type names is non-extractive, i.e. we don't substring the input string or create any new heap allocations to track them (apart from the two local
+                                // Lists), we simply remember the extents of the name (start/end).
 
-                                #pragma warning disable CS8602 // EnsureNameSegmentList call above ensures that nameSegments is never null here
-                                nameSegments.Add(new TypeNameSegment(name, (start, curPos), typeIsNestedClass, parsingArgDepth: 0));
-                                #pragma warning restore CS8602
-                            }
-                            else
-                            {
-                                // We are parsing a generic list (potentialy nested lists in the case where a generic param is itself generic)
-                                EnsureGenericArgList();
+                                int start;
+                                (start, curPos) = GetTypeNameExtent(name, curPos, parsingGenericArgList: parsingGenericArgListDepth != 0);
 
-                                #pragma warning disable CS8602 // EnsureGenericArgList call above ensures that genericArgs is never null here
-                                genericArgs.Add(new TypeNameSegment(name, (start, curPos), typeIsNestedClass, parsingGenericArgListDepth));
-                                #pragma warning restore CS8602
+                                // Special case: Check if after parsing the type name we have exhausted the string, if so it means the input string is the output string, so just return it
+                                // without allocating a copy.
+                                if (ReturnOriginalDACString(curPos, name.Length, nameSegments))
+                                    return name;
 
-                            }
+                                bool typeIsNestedClass = (parsingNestedClassDepth != 0);
+                                if (parsingGenericArgListDepth == 0)
+                                {
+                                    // We are parsing a top-level type name/sequence
+                                    EnsureNameSegmentList();
 
-                            if (parsingNestedClassDepth != 0)
-                                parsingNestedClassDepth--;
+#pragma warning disable CS8602 // EnsureNameSegmentList call above ensures that nameSegments is never null here
+                                    nameSegments.Add(new TypeNameSegment(name, (start, curPos), typeIsNestedClass, parsingArgDepth: 0));
+#pragma warning restore CS8602
+                                }
+                                else
+                                {
+                                    // We are parsing a generic list (potentialy nested lists in the case where a generic param is itself generic)
+                                    EnsureGenericArgList();
 
-                            (currentState, curPos) = DetermineNextStateAndPos(name, curPos);
-                            break;
-                        }
-                    case ParsingState.ParsingNestedClass:
-                        {
-                            // We are starting to parse a nested type name, just record the nested class depth (we have to handle multiple levels of nested classes), and 
-                            // transition back to the type name parsing state.
+#pragma warning disable CS8602 // EnsureGenericArgList call above ensures that genericArgs is never null here
+                                    genericArgs.Add(new TypeNameSegment(name, (start, curPos), typeIsNestedClass, parsingGenericArgListDepth));
+#pragma warning restore CS8602
 
-                            parsingNestedClassDepth++;
-                            currentState = ParsingState.ParsingTypeName;
-                            break;
-                        }
-                    case ParsingState.ParsingGenericArgCount:
-                        {
-                            // Parse the arity of the generic type. Note: we do this 'in place' i.e. without extracting the count substring, it's unfortunate but int.Parse does not include
-                            // an overload that operates in place based on start/length.
+                                }
 
-                            int genericArgCount;
-                            (genericArgCount, curPos) = ParseGenericArityCountFromStringInPlace(name, curPos);
+                                if (parsingNestedClassDepth != 0)
+                                    parsingNestedClassDepth--;
 
-                            List<TypeNameSegment>? targetList = ((genericArgs != null) && (genericArgs.Count != 0)) ? genericArgs : nameSegments;
-
-                            if (targetList != null)
-                            {
-                                // NOTE: TypeNameSegment is a struct to avoid heap allocations, that means we have to extract / modify / re-store to ensure the updated state gets back into whatever
-                                // list this came from.
-                                int targetIndex = targetList.Count - 1;
-                                TypeNameSegment seg = targetList[targetIndex];
-                                seg.SetExpectedGenericArgCount(genericArgCount);
-                                targetList[targetIndex] = seg;
-                            }
-                            else
-                            {
-                                currentState = ParsingState.Error;
+                                (currentState, curPos) = DetermineNextStateAndPos(name, curPos);
                                 break;
                             }
-
-                            (currentState, curPos) = DetermineNextStateAndPos(name, curPos);
-                            break;
-                        }
-                    case ParsingState.ParsingGenericArgAssemblySpecifier:
-                        {
-                            // Nothing to do here, really, just skip the assembly name specified in the generic arg type
-                            while (curPos < name.Length && name[curPos] != ']')
-                                curPos++;
-
-                            (currentState, curPos) = DetermineNextStateAndPos(name, curPos);
-                            break;
-                        }
-                    case ParsingState.ParsingGenericArgs:
-                        {
-                            // Start parsing the list of generic types, this just entails marking that we are parsing a generic arg list. NOTE: to support nested generic arg lsits we
-                            // have to keep track of list count, not just a simple bool are/aren't parsing.
-                            parsingGenericArgListDepth++;
-                            currentState = ParsingState.ParsingTypeName;
-                            break;
-                        }
-                    case ParsingState.ParsingArraySpecifier:
-                        {
-                            // Parse the array specifier, this mainly is to catch multi-dimensional arrays
-
-                            // There is always at least a single dimenision in arrays, every comma counts as one more
-                            int arrayDimensions = 1;
-
-                            // Calculate the array dimensions
-                            while ((curPos < name.Length) && (name[curPos] != ']'))
+                        case ParsingState.ParsingNestedClass:
                             {
-                                if (name[curPos] == ',')
-                                    arrayDimensions++;
+                                // We are starting to parse a nested type name, just record the nested class depth (we have to handle multiple levels of nested classes), and 
+                                // transition back to the type name parsing state.
 
-                                curPos++;
+                                parsingNestedClassDepth++;
+                                currentState = ParsingState.ParsingTypeName;
+                                break;
                             }
-
-                            // Consume the final ] of the array specifier, unless we are at the end of the string already
-                            if (curPos != name.Length)
-                                curPos++;
-
-                            if (parsingGenericArgListDepth != 0 || nameSegments != null)
+                        case ParsingState.ParsingGenericArgCount:
                             {
-                                // NOTE: TypeNameSegment is a struct to avoid heap allocations, that means we have to extract / modify / re-store to ensure the updated state gets back into whatever
-                                // list this came from.
-                                List<TypeNameSegment>? targetList = parsingGenericArgListDepth != 0 ? genericArgs : nameSegments;
+                                // Parse the arity of the generic type. Note: we do this 'in place' i.e. without extracting the count substring, it's unfortunate but int.Parse does not include
+                                // an overload that operates in place based on start/length.
+
+                                int genericArgCount;
+                                (genericArgCount, curPos) = ParseGenericArityCountFromStringInPlace(name, curPos);
+
+                                List<TypeNameSegment>? targetList = ((genericArgs != null) && (genericArgs.Count != 0)) ? genericArgs : nameSegments;
 
                                 if (targetList != null)
                                 {
+                                    // NOTE: TypeNameSegment is a struct to avoid heap allocations, that means we have to extract / modify / re-store to ensure the updated state gets back into whatever
+                                    // list this came from.
                                     int targetIndex = targetList.Count - 1;
-
-                                    TypeNameSegment targetSegment = targetList[targetIndex];
-                                    targetSegment.SetArrayDimensions(arrayDimensions);
-                                    targetList[targetIndex] = targetSegment;
+                                    TypeNameSegment seg = targetList[targetIndex];
+                                    seg.SetExpectedGenericArgCount(genericArgCount);
+                                    targetList[targetIndex] = seg;
                                 }
                                 else
                                 {
@@ -214,56 +158,122 @@ namespace Microsoft.Diagnostics.Runtime.Builders
                                 }
 
                                 (currentState, curPos) = DetermineNextStateAndPos(name, curPos);
-                                if(genericArgs == null || genericArgs.Count == 0 && currentState == ParsingState.Done)
-                                {
-                                    // Special case: Return original string in cases like this:
-                                    //
-                                    // System.String[,,,] or System.Int32[][]
-                                    if(ReturnOriginalDACString(curPos, name.Length, nameSegments))
-                                        return name;
-                                }
+                                break;
                             }
-                            else
+                        case ParsingState.ParsingGenericArgAssemblySpecifier:
                             {
-                                Debug.Fail("Inside ParsingArraySpecifier but we don't think we are parsing generic params and have nothing on the top-level name segment list.");
-                                currentState = ParsingState.Error;
-                            }
+                                // Nothing to do here, really, just skip the assembly name specified in the generic arg type
+                                while (curPos < name.Length && name[curPos] != ']')
+                                    curPos++;
 
-                            break;
-                        }
-                    case ParsingState.ResolveParsedGenericList:
-                        {
-                            // We are done with this level of arguments in terms of parsing, now we just have to apply them to the types they belong with (from previous parsing levels or the
-                            // top-level).
-                            parsingGenericArgListDepth--;
-
-                            if (genericArgs == null || genericArgs.Count == 0)
-                            {
-                                // For top-level types with multiple-level generic arg lists (so a type with a generic arg which itself is a generic type) as we unwind the nested generic args
-                                // lists we can end up wth no more work to do upon exiting a level (because we already propagated the info backwards before getting here), in which case, do nothing.
                                 (currentState, curPos) = DetermineNextStateAndPos(name, curPos);
                                 break;
                             }
+                        case ParsingState.ParsingGenericArgs:
+                            {
+                                // Start parsing the list of generic types, this just entails marking that we are parsing a generic arg list. NOTE: to support nested generic arg lsits we
+                                // have to keep track of list count, not just a simple bool are/aren't parsing.
+                                parsingGenericArgListDepth++;
+                                currentState = ParsingState.ParsingTypeName;
+                                break;
+                            }
+                        case ParsingState.ParsingArraySpecifier:
+                            {
+                                // Parse the array specifier, this mainly is to catch multi-dimensional arrays
 
-                            (currentState, curPos) = ResolveParsedGenericList(name, curPos, parsingGenericArgListDepth, nameSegments, genericArgs);
-                            break;
-                        }
+                                // There is always at least a single dimenision in arrays, every comma counts as one more
+                                int arrayDimensions = 1;
+
+                                // Calculate the array dimensions
+                                while ((curPos < name.Length) && (name[curPos] != ']'))
+                                {
+                                    if (name[curPos] == ',')
+                                        arrayDimensions++;
+
+                                    curPos++;
+                                }
+
+                                // Consume the final ] of the array specifier, unless we are at the end of the string already
+                                if (curPos != name.Length)
+                                    curPos++;
+
+                                if (parsingGenericArgListDepth != 0 || nameSegments != null)
+                                {
+                                    // NOTE: TypeNameSegment is a struct to avoid heap allocations, that means we have to extract / modify / re-store to ensure the updated state gets back into whatever
+                                    // list this came from.
+                                    List<TypeNameSegment>? targetList = parsingGenericArgListDepth != 0 ? genericArgs : nameSegments;
+
+                                    if (targetList != null)
+                                    {
+                                        int targetIndex = targetList.Count - 1;
+
+                                        TypeNameSegment targetSegment = targetList[targetIndex];
+                                        targetSegment.SetArrayDimensions(arrayDimensions);
+                                        targetList[targetIndex] = targetSegment;
+                                    }
+                                    else
+                                    {
+                                        currentState = ParsingState.Error;
+                                        break;
+                                    }
+
+                                    (currentState, curPos) = DetermineNextStateAndPos(name, curPos);
+                                    if (genericArgs == null || genericArgs.Count == 0 && currentState == ParsingState.Done)
+                                    {
+                                        // Special case: Return original string in cases like this:
+                                        //
+                                        // System.String[,,,] or System.Int32[][]
+                                        if (ReturnOriginalDACString(curPos, name.Length, nameSegments))
+                                            return name;
+                                    }
+                                }
+                                else
+                                {
+                                    Debug.Fail("Inside ParsingArraySpecifier but we don't think we are parsing generic params and have nothing on the top-level name segment list.");
+                                    currentState = ParsingState.Error;
+                                }
+
+                                break;
+                            }
+                        case ParsingState.ResolveParsedGenericList:
+                            {
+                                // We are done with this level of arguments in terms of parsing, now we just have to apply them to the types they belong with (from previous parsing levels or the
+                                // top-level).
+                                parsingGenericArgListDepth--;
+
+                                if (genericArgs == null || genericArgs.Count == 0)
+                                {
+                                    // For top-level types with multiple-level generic arg lists (so a type with a generic arg which itself is a generic type) as we unwind the nested generic args
+                                    // lists we can end up wth no more work to do upon exiting a level (because we already propagated the info backwards before getting here), in which case, do nothing.
+                                    (currentState, curPos) = DetermineNextStateAndPos(name, curPos);
+                                    break;
+                                }
+
+                                (currentState, curPos) = ResolveParsedGenericList(name, curPos, parsingGenericArgListDepth, nameSegments, genericArgs);
+                                break;
+                            }
+                    }
                 }
-            }
 
-            if (currentState == ParsingState.Error || nameSegments == null)
+                if (currentState == ParsingState.Error || nameSegments == null)
+                {
+                    // If we have encountered something we failed on, return the DAC string so at least there is SOMETHING
+                    Debug.WriteLine($"Failed Parsing DAC Name: {name}");
+                    return name;
+                }
+
+                //Build the final result from all the type name segments we have
+                StringBuilder result = new StringBuilder();
+                foreach (TypeNameSegment segment in nameSegments)
+                    segment.ToString(result);
+
+                return result.ToString();
+            }
+            catch (Exception e)
             {
-                // If we have encountered something we failed on, return the DAC string so at least there is SOMETHING
-                Debug.WriteLine($"Failed Parsing DAC Name: {name}");
+                Debug.WriteLine($"Encountered an exception while parsing name {name}: {e}");
                 return name;
             }
-
-            //Build the final result from all the type name segments we have
-            StringBuilder result = new StringBuilder();
-            foreach (TypeNameSegment segment in nameSegments)
-                segment.ToString(result);
-
-            return result.ToString();
         }
 
         private static (ParsingState State, int CurrentPosition) ResolveParsedGenericList(string name, int currentPosition, int parsingGenericArgListDepth, List<TypeNameSegment>? nameSegments, List<TypeNameSegment>? genericArgs)
@@ -625,7 +635,7 @@ namespace Microsoft.Diagnostics.Runtime.Builders
                     }
                 case GenericArgListOrArrayEndSpecifier:
                     {
-                        if (curPos + 1 >= name.Length)
+                        if (curPos != name.Length)
                         {
                             if (name[curPos + 1] == GenericArgListOrArrayEndSpecifier)
                                 return (ParsingState.ResolveParsedGenericList, curPos + 2);
@@ -662,31 +672,30 @@ namespace Microsoft.Diagnostics.Runtime.Builders
         [DebuggerDisplay("{Name}")]
         private struct TypeNameSegment
         {
-            private string input;
-            private int expectedGenericArgCount;
-            private TypeNameSegment[]? typeArgSegments;
-            private int nextUnfulfilledGenericArgSlot;
-            private int arrayDimensions;
-            private int arrayOfArraysCount;
+            private readonly string _input;
+            private int _expectedGenericArgCount;
+            private TypeNameSegment[]? _typeArgSegments;
+            private int _nextUnfulfilledGenericArgSlot;
+            private int _arrayDimensions;
+            private int _arrayOfArraysCount;
 
             // NOTE: This is only an array to defeat the cycle detection stuff in the compiler. Since this is a struct if I have a field that is TypeNameSegment or
             // TypeNameSegment? it complains there is a cycle in the layout since to determine the size of the struct it must determine the size of the struct. To
             // avoid that we store a nested class (and there will only ever be at most 1) in an array.
-            private TypeNameSegment[]? nestedClass;
+            private TypeNameSegment[]? _nestedClass;
 
             public TypeNameSegment(string input, (int Start, int End) extent, bool isNestedClass, int parsingArgDepth)
             {
-                this.input = input;
-                this.Extent = extent;
-                this.IsNestedClass = isNestedClass;
-                this.expectedGenericArgCount = 0;
-                this.typeArgSegments = null;
-                this.nextUnfulfilledGenericArgSlot = 0;
-                this.nestedClass = null;
-                this.arrayDimensions = 0;
-                this.arrayOfArraysCount = 0;
-                this.ParsingArgDepth = parsingArgDepth;
-                this.nestedClass = null;
+                _input = input;
+                Extent = extent;
+                IsNestedClass = isNestedClass;
+                _expectedGenericArgCount = 0;
+                _typeArgSegments = null;
+                _nextUnfulfilledGenericArgSlot = 0;
+                _arrayDimensions = 0;
+                _arrayOfArraysCount = 0;
+                ParsingArgDepth = parsingArgDepth;
+                _nestedClass = null;
             }
 
             public (int Start, int End) Extent { get; }
@@ -697,15 +706,15 @@ namespace Microsoft.Diagnostics.Runtime.Builders
 
             public bool IsNestedClass { get; }
 
-            public bool IsNestedClassOrHasNestedClassComponent => this.IsNestedClass || this.HasNestedClassSegment;
+            public bool IsNestedClassOrHasNestedClassComponent => IsNestedClass || HasNestedClassSegment;
 
-            public bool IsGenericClass => this.expectedGenericArgCount != 0;
+            public bool IsGenericClass => _expectedGenericArgCount != 0;
 
-            public bool HasUnfulfilledGenericArgs => this.IsGenericClass && (this.typeArgSegments == null || this.nextUnfulfilledGenericArgSlot < this.typeArgSegments.Length);
+            public bool HasUnfulfilledGenericArgs => IsGenericClass && (_typeArgSegments == null || _nextUnfulfilledGenericArgSlot < _typeArgSegments.Length);
 
-            public int ExpectedGenericArgsCount => this.expectedGenericArgCount;
+            public int ExpectedGenericArgsCount => _expectedGenericArgCount;
 
-            public int RemainingUnfulfilledGenericArgCount => this.expectedGenericArgCount - this.nextUnfulfilledGenericArgSlot;
+            public int RemainingUnfulfilledGenericArgCount => _expectedGenericArgCount - _nextUnfulfilledGenericArgSlot;
 
             public void SetArrayDimensions(int dimensions)
             {
@@ -715,34 +724,34 @@ namespace Microsoft.Diagnostics.Runtime.Builders
                 // name segment', we just pile them all into the original TypeNameSegment and differentiate when we are printing
                 // out the names at the end (to either print [,] or [][]).
 
-                if(this.arrayDimensions == 0)
-                    this.arrayDimensions = dimensions;
+                if(_arrayDimensions == 0)
+                    _arrayDimensions = dimensions;
                 else
-                    this.arrayOfArraysCount++;
+                    _arrayOfArraysCount++;
             }
 
             public void SetExpectedGenericArgCount(int expectedCount)
             {
-                this.expectedGenericArgCount = expectedCount;
+                _expectedGenericArgCount = expectedCount;
             }
 
             public void AddGenericArg(TypeNameSegment arg)
             {
-                Debug.Assert(this.expectedGenericArgCount != 0, $"{Name} did not expect any generic arguments");
+                Debug.Assert(_expectedGenericArgCount != 0, $"{Name} did not expect any generic arguments");
 
-                if (this.expectedGenericArgCount == 0)
+                if (_expectedGenericArgCount == 0)
                     return;
 
-                if (this.typeArgSegments == null)
-                    this.typeArgSegments = new TypeNameSegment[this.expectedGenericArgCount];
+                if (_typeArgSegments == null)
+                    _typeArgSegments = new TypeNameSegment[_expectedGenericArgCount];
 
-                this.typeArgSegments[this.nextUnfulfilledGenericArgSlot++] = arg;
+                _typeArgSegments[_nextUnfulfilledGenericArgSlot++] = arg;
             }
 
             public void UnifyNestedClass(TypeNameSegment nestedClass)
             {
                 Debug.Assert(nestedClass.IsNestedClass);
-                this.nestedClass = new[] { nestedClass };
+                _nestedClass = new[] { nestedClass };
             }
 
             public override string ToString()
@@ -756,38 +765,38 @@ namespace Microsoft.Diagnostics.Runtime.Builders
 
             public void ToString(StringBuilder destination)
             {
-                if (this.IsNestedClass)
+                if (IsNestedClass)
                     destination.Append('+');
 
-                destination.Append(this.input, Extent.Start, Extent.End - Extent.Start);
+                destination.Append(_input, Extent.Start, Extent.End - Extent.Start);
 
-                if (this.IsGenericClass)
+                if (IsGenericClass)
                 {
-                    OutputTypeArguments(destination, this.nextUnfulfilledGenericArgSlot, this.expectedGenericArgCount, this.typeArgSegments);
+                    OutputTypeArguments(destination, _nextUnfulfilledGenericArgSlot, _expectedGenericArgCount, _typeArgSegments);
                 }
 
-                if (this.nestedClass != null)
+                if (_nestedClass != null)
                 {
-                    this.nestedClass[0].ToString(destination);
+                    _nestedClass[0].ToString(destination);
                 }
 
                 // See comment in SetArrayDimensions on what this is :)
-                if(this.arrayOfArraysCount != 0)
+                if(_arrayOfArraysCount != 0)
                 {
                     destination.Append("[]");
-                    for(int i = 0; i < this.arrayOfArraysCount; i++)
+                    for(int i = 0; i < _arrayOfArraysCount; i++)
                         destination.Append("[]");
                 }
-                else if (this.arrayDimensions != 0)
+                else if (_arrayDimensions != 0)
                 {
                     destination.Append('[');
-                    if (this.arrayDimensions > 1)
-                        destination.Append(',', this.arrayDimensions - 1);
+                    if (_arrayDimensions > 1)
+                        destination.Append(',', _arrayDimensions - 1);
                     destination.Append(']');
                 }
             }
 
-            private bool HasNestedClassSegment => this.nestedClass != null;
+            private bool HasNestedClassSegment => _nestedClass != null;
 
             private static void OutputTypeArguments(StringBuilder destination, int firstMissingGenericSlot, int expectedArgCount, TypeNameSegment[]? typeArgs)
             {

@@ -1,9 +1,8 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -46,19 +45,23 @@ namespace Microsoft.Diagnostics.Runtime
             if (moduleName is null)
                 return false;
 
+            if (moduleName.Equals(c_desktopModuleName1, StringComparison.OrdinalIgnoreCase) ||
+                moduleName.Equals(c_desktopModuleName2, StringComparison.OrdinalIgnoreCase))
+            {
+                flavor = ClrFlavor.Desktop;
+                platform = OSPlatform.Windows;
+                return true;
+            }
+
+            if (moduleName.Equals(c_coreModuleName, StringComparison.OrdinalIgnoreCase))
+            {
+                flavor = ClrFlavor.Core;
+                platform = OSPlatform.Windows;
+                return true;
+            }
+
             switch (moduleName)
             {
-                case c_desktopModuleName1:
-                case c_desktopModuleName2:
-                    flavor = ClrFlavor.Desktop;
-                    platform = OSPlatform.Windows;
-                    return true;
-
-                case c_coreModuleName:
-                    flavor = ClrFlavor.Core;
-                    platform = OSPlatform.Windows;
-                    return true;
-
                 case c_linuxCoreModuleName:
                     flavor = ClrFlavor.Core;
                     platform = OSPlatform.Linux;
@@ -68,10 +71,9 @@ namespace Microsoft.Diagnostics.Runtime
                     flavor = ClrFlavor.Core;
                     platform = OSPlatform.OSX;
                     return true;
-
-                default:
-                    return false;
             }
+
+            return false;
         }
 
         /// <summary>
@@ -80,7 +82,8 @@ namespace Microsoft.Diagnostics.Runtime
         public static string GetDacFileName(ClrFlavor flavor, OSPlatform platform)
         {
             if (platform == OSPlatform.Linux)
-                return c_linuxCoreDacFileName;
+                // if running on Windows and the target is Linux return the cross-OS DAC name
+                return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? c_coreDacFileName : c_linuxCoreDacFileName;
 
             if (platform == OSPlatform.OSX)
                 return c_macOSCoreDacFileName;
@@ -95,7 +98,8 @@ namespace Microsoft.Diagnostics.Runtime
         {
             // Linux never has a "long" named DAC
             if (platform == OSPlatform.Linux)
-                return c_linuxCoreDacFileName;
+                // if running on Windows and the target is Linux return the cross-OS DAC name
+                return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? c_coreDacFileName : c_linuxCoreDacFileName;
 
             if (platform == OSPlatform.OSX)
                 return c_macOSCoreDacFileName;

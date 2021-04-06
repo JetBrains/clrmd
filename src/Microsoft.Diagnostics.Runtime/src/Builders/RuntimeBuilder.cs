@@ -6,11 +6,9 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using Microsoft.Diagnostics.Runtime.DacInterface;
 using Microsoft.Diagnostics.Runtime.Implementation;
@@ -34,15 +32,15 @@ namespace Microsoft.Diagnostics.Runtime.Builders
         private readonly ulong _firstThread;
 
         private volatile ClrType?[]? _basicTypes;
-        private readonly Dictionary<ulong, ClrAppDomain> _domains = new Dictionary<ulong, ClrAppDomain>();
-        private readonly Dictionary<ulong, ClrModule> _modules = new Dictionary<ulong, ClrModule>();
+        private readonly Dictionary<ulong, ClrAppDomain> _domains = new();
+        private readonly Dictionary<ulong, ClrModule> _modules = new();
 
         private readonly ClrmdRuntime _runtime;
         private readonly ClrmdHeap _heap;
 
         private volatile StringReader? _stringReader;
 
-        private readonly Dictionary<ulong, ClrType> _types = new Dictionary<ulong, ClrType>();
+        private readonly Dictionary<ulong, ClrType> _types = new();
 
         private readonly ObjectPool<TypeBuilder> _typeBuilders;
         private readonly ObjectPool<MethodBuilder> _methodBuilders;
@@ -452,12 +450,12 @@ namespace Microsoft.Diagnostics.Runtime.Builders
 
             if (runtime.SharedDomain != null)
                 foreach (ClrModule module in runtime.SharedDomain.Modules)
-                    if (!(module.Name is null) && module.Name.ToUpperInvariant().Contains(moduleName))
+                    if (!(module.Name is null) && module.Name.Contains(moduleName, StringComparison.OrdinalIgnoreCase))
                         return module;
 
             foreach (ClrAppDomain domain in runtime.AppDomains)
                 foreach (ClrModule module in domain.Modules)
-                    if (!(module.Name is null) && module.Name.ToUpperInvariant().Contains(moduleName))
+                    if (!(module.Name is null) && module.Name.Contains(moduleName, StringComparison.OrdinalIgnoreCase))
                         return module;
 
             return null;
@@ -1491,15 +1489,13 @@ namespace Microsoft.Diagnostics.Runtime.Builders
             return 0;
         }
 
-        IObjectData ITypeHelpers.GetObjectData(ulong objRef)
+        IObjectData? ITypeHelpers.GetObjectData(ulong objRef)
         {
             CheckDisposed();
 
             // todo remove
             if (_sos.GetObjectData(objRef, out ObjectData data) == HResult.S_OK)
-            {
                 return data;
-            }
 
             return null;
         }

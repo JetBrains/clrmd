@@ -83,17 +83,15 @@ namespace Microsoft.Diagnostics.Runtime
 
                 if (_originalPid != 0)
                 {
+                    // We don't want to throw an exception when we fail to free a snapshot.  In practice we never expect this to fail.
+                    // If we were able to create a snapshot we should be able to free it.  Throwing an exception here means that our
+                    // DataTarget.Dispose call (normally at the end of a using statement) will throw, and that is really annoying
+                    // to code around.  Instead we'll log a message to any Trace listener, but otherwise continue on.
                     int hr = PssFreeSnapshot(Process.GetCurrentProcess().Handle, _snapshotHandle);
-                    if (hr != 0)
-                        throw new InvalidOperationException($"Could not free the snapshot. Error {hr}.");
+                    DebugOnly.Assert(hr == 0);
 
-                    try
-                    {
-                        Process.GetProcessById(ProcessId).Kill();
-                    }
-                    catch (Win32Exception)
-                    {
-                    }
+                    if (hr != 0)
+                        Trace.WriteLine($"Unable to free the snapshot of the process we took: hr={hr}");
                 }
 
                 if (_process != IntPtr.Zero)
@@ -191,6 +189,31 @@ namespace Microsoft.Diagnostics.Runtime
 
         public bool GetThreadContext(uint threadID, uint contextFlags, Span<byte> context)
         {
+            // We need to set the ContextFlags field to be the value of contextFlags.  For AMD64, that field is
+            // at offset 0x30. For all other platforms that field is at offset 0.  We test here whether the context
+            // is large enough to write the flags and then assign the value based on the architecture's offset.
+
+            bool amd64 = Architecture == Architecture.Amd64;
+            if (context.Length < 4 || (amd64 && context.Length < 0x34))
+                return false;
+
+            if (amd64)
+            {
+                fixed (byte* ptr = context)
+                {
+                    AMD64Context* ctx = (AMD64Context*)ptr;
+                    ctx->ContextFlags = contextFlags;
+                }
+            }
+            else
+            {
+                fixed (byte* ptr = context)
+                {
+                    uint* intPtr = (uint*)ptr;
+                    *intPtr = contextFlags;
+                }
+            }
+
             using SafeWin32Handle thread = OpenThread(ThreadAccess.THREAD_ALL_ACCESS, true, threadID);
             if (thread.IsInvalid)
                 return false;
