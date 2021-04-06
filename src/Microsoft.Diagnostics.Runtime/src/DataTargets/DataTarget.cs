@@ -269,7 +269,8 @@ namespace Microsoft.Diagnostics.Runtime
 
                 IDataReader reader = format switch
                 {
-                    DumpFileFormat.Minidump => new MinidumpReader(displayName, stream, cacheOptions, leaveOpen),
+                    // DumpFileFormat.Minidump => new MinidumpReader(displayName, stream, cacheOptions, leaveOpen),
+                    DumpFileFormat.Minidump => new DbgEngDataReader(displayName, stream, leaveOpen),
                     DumpFileFormat.ElfCoredump => new CoredumpReader(displayName, stream, leaveOpen),
 
                     // USERDU64 dumps are the "old" style of dumpfile.  This file format is very old and shouldn't be
