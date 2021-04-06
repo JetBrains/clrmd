@@ -142,12 +142,12 @@ namespace Microsoft.Diagnostics.Runtime
         {
             get
             {
-                _pointerSize = IntPtr.Size;
-                if (_pointerSize is int pointerSize)
-                    return pointerSize;
+                // _pointerSize = IntPtr.Size;
+                // if (_pointerSize is int pointerSize)
+                //     return pointerSize;
 
-                _pointerSize = pointerSize = _control.IsPointer64Bit() ? sizeof(long) : sizeof(int);
-                return pointerSize;
+                _pointerSize = _control.IsPointer64Bit() ? sizeof(long) : sizeof(int);
+                return _pointerSize.Value;
             }
         }
 
