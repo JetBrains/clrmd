@@ -291,8 +291,10 @@ namespace Microsoft.Diagnostics.Runtime
         /// <param name="stream">The stream that should be used.</param>
         /// <param name="cacheOptions">The caching options to use. (Only used for FileStreams)</param>
         /// <param name="leaveOpen">True whenever the given stream should be leaved open when the DataTarget is disposed.</param>
+        /// <param name="useDbgEngDataReader">Use DbgEngDataReader instead of MinidumpReader</param>
         /// <returns>A <see cref="DataTarget"/> for the given dump.</returns>
-        public static DataTarget LoadDump(string displayName, Stream stream, CacheOptions? cacheOptions = null, bool leaveOpen = false)
+        public static DataTarget LoadDump(string displayName, Stream stream, CacheOptions? cacheOptions = null,
+                                          bool leaveOpen = false, bool useDbgEngDataReader = false)
         {
             try
             {
@@ -315,7 +317,9 @@ namespace Microsoft.Diagnostics.Runtime
 
                 IDataReader reader = format switch
                 {
-                    DumpFileFormat.Minidump => new MinidumpReader(displayName, stream, cacheOptions, leaveOpen),
+                    DumpFileFormat.Minidump => useDbgEngDataReader 
+                        ? new DbgEngDataReader(displayName, stream, leaveOpen)
+                        : new MinidumpReader(displayName, stream, cacheOptions, leaveOpen),
                     DumpFileFormat.ElfCoredump => new CoredumpReader(displayName, stream, leaveOpen),
 
                     // USERDU64 dumps are the "old" style of dumpfile.  This file format is very old and shouldn't be
@@ -343,8 +347,9 @@ namespace Microsoft.Diagnostics.Runtime
         /// </summary>
         /// <param name="filePath">The path to the dump file.</param>
         /// <param name="cacheOptions">The caching options to use.</param>
+        /// <param name="useDbgEngDataReader">Use DbgEngDataReader instead of MinidumpReader</param>
         /// <returns>A <see cref="DataTarget"/> for the given dump file.</returns>
-        public static DataTarget LoadDump(string filePath, CacheOptions? cacheOptions = null)
+        public static DataTarget LoadDump(string filePath, CacheOptions? cacheOptions = null, bool useDbgEngDataReader = false)
         {
             if (filePath is null)
                 throw new ArgumentNullException(nameof(filePath));
@@ -354,7 +359,7 @@ namespace Microsoft.Diagnostics.Runtime
 #pragma warning disable CA2000 // Dispose objects before losing scope - LoadDump(Stream) will take ownership
             FileStream stream = File.OpenRead(filePath);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            return LoadDump(filePath, stream, cacheOptions, leaveOpen: false);
+            return LoadDump(filePath, stream, cacheOptions, leaveOpen: false, useDbgEngDataReader: useDbgEngDataReader);
         }
 
         private static DumpFileFormat ReadFileFormat(Stream stream)
