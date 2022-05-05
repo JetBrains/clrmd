@@ -315,7 +315,7 @@ namespace Microsoft.Diagnostics.Runtime.Builders
                     bool interior = (refs[i].Flags & GCInteriorFlag) == GCInteriorFlag;
                     bool pinned = (refs[i].Flags & GCPinnedFlag) == GCPinnedFlag;
 
-                    ClrStackFrame? frame = stack.SingleOrDefault(f => f.StackPointer == refs[i].Source || f.StackPointer == refs[i].StackPointer && f.InstructionPointer == refs[i].Source);
+                    ClrStackFrame? frame = stack.FirstOrDefault(f => f.StackPointer == refs[i].Source || f.StackPointer == refs[i].StackPointer && f.InstructionPointer == refs[i].Source);
                     frame ??= new ClrmdStackFrame(thread, null, refs[i].Source, refs[i].StackPointer, ClrStackFrameKind.Unknown, null, null);
 
                     if (interior)
