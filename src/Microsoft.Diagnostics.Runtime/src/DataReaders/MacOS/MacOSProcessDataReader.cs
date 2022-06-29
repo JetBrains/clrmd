@@ -83,6 +83,7 @@ namespace Microsoft.Diagnostics.Runtime.MacOS
 
         private void Dispose(bool disposing)
         {
+            _ = disposing;
             if (_disposed)
                 return;
 
