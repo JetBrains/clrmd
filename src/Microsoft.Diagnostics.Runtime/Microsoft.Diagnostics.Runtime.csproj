@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0;net461;net5.0</TargetFrameworks>
     <LangVersion>preview</LangVersion>
     <NoWarn>1591;1701</NoWarn>
     <Nullable>enable</Nullable>
@@ -18,11 +18,13 @@
       <!-- Put this file in the root of the package -->
       <PackagePath></PackagePath>
     </Content>
+    <AdditionalFiles Include="PublicAPI\net461.0\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\net461.0\PublicAPI.Unshipped.txt" />
     <AdditionalFiles Include="stylecop.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="3.3.3" PrivateAssets="all" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="3.3.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Diagnostics.NETCore.Client" Version="0.2.221401" />
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
