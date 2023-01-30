@@ -28,8 +28,7 @@ namespace Microsoft.Diagnostics.Runtime.Builders
         private const char NestedClassSpecifier = '+';
         private const char GenericArgListOrArrayStartSpecifier = '[';
         private const char GenericArgListOrArrayEndSpecifier = ']';
-
-        [return: NotNullIfNotNull("name")]
+        
         public static string? Parse(string? name)
         {
             if(name == null)
