@@ -128,7 +128,7 @@ namespace Microsoft.Diagnostics.Runtime
         public Architecture Architecture => _architecture ??= _control.GetEffectiveProcessorType() switch
         {
             IMAGE_FILE_MACHINE.I386 => Architecture.X86,
-            IMAGE_FILE_MACHINE.AMD64 => Architecture.X64,
+            IMAGE_FILE_MACHINE.AMD64 => Architecture.Amd64,
             IMAGE_FILE_MACHINE.ARM or
             IMAGE_FILE_MACHINE.THUMB or
             IMAGE_FILE_MACHINE.THUMB2 => Architecture.Arm,

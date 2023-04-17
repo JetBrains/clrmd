@@ -382,7 +382,7 @@ namespace Microsoft.Diagnostics.Runtime.Builders
                 contextSize = 716;
                 contextFlags = 0x1003f;
             }
-            else // Architecture.X64
+            else // Architecture.Amd64
             {
                 ipOffset = 248;
                 spOffset = 152;

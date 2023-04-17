@@ -31,7 +31,7 @@ namespace Microsoft.Diagnostics.Runtime.MacOS
         public Architecture Architecture => _header.CpuType switch
         {
             MachOCpuType.X86 => Architecture.X86,
-            MachOCpuType.X86_64 => Architecture.X64,
+            MachOCpuType.X86_64 => Architecture.Amd64,
             MachOCpuType.ARM => Architecture.Arm,
             MachOCpuType.ARM64 => Architecture.Arm64,
             _ => (Architecture)(-1)
