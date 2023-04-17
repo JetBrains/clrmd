@@ -47,7 +47,7 @@ namespace Microsoft.Diagnostics.Runtime.MacOS
 
             switch (Architecture)
             {
-                case Architecture.X64:
+                case Architecture.Amd64:
                     thread.x64.CopyContext(context);
                     break;
                 case Architecture.Arm64:

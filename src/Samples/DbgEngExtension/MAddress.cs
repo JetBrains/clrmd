@@ -349,7 +349,7 @@ namespace DbgEngExtension
                 Architecture.Arm => ArmContext.Size,
                 Architecture.Arm64 => Arm64Context.Size,
                 Architecture.X86 => X86Context.Size,
-                Architecture.X64 => AMD64Context.Size,
+                Architecture.Amd64 => AMD64Context.Size,
                 _ => 0
             };
 
@@ -393,7 +393,7 @@ namespace DbgEngExtension
                         }
                         break;
 
-                    case Architecture.X64:
+                    case Architecture.Amd64:
                         fixed (byte* ptrCtx = buffer)
                         {
                             AMD64Context* ctx = (AMD64Context*)ptrCtx;

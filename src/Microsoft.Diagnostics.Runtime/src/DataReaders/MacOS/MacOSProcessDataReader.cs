@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Diagnostics.Runtime.DataReaders.Implementation;
 using Microsoft.Diagnostics.Runtime.Utilities;
+using ProcessArchitecture = System.Runtime.InteropServices.Architecture;
 
 namespace Microsoft.Diagnostics.Runtime.MacOS
 {
@@ -60,7 +61,7 @@ namespace Microsoft.Diagnostics.Runtime.MacOS
             }
 
             _memoryRegions = LoadMemoryRegions();
-            Architecture = RuntimeInformation.ProcessArchitecture;
+            Architecture = RuntimeInformation.ProcessArchitecture.ToArchitecture();
         }
 
         ~MacOSProcessDataReader() => Dispose(false);
@@ -261,7 +262,7 @@ namespace Microsoft.Diagnostics.Runtime.MacOS
             int regSize;
             (stateFlavor, stateCount, regSize) = Architecture switch
             {
-                Architecture.X64 => (Native.x86_THREAD_STATE64, Native.x86_THREAD_STATE64_COUNT, sizeof(x86_thread_state64_t)),
+                Architecture.Amd64 => (Native.x86_THREAD_STATE64, Native.x86_THREAD_STATE64_COUNT, sizeof(x86_thread_state64_t)),
                 Architecture.Arm64 => (Native.ARM_THREAD_STATE64, Native.ARM_THREAD_STATE64_COUNT, sizeof(arm_thread_state64_t)),
                 _ => throw new PlatformNotSupportedException()
             };
@@ -278,7 +279,7 @@ namespace Microsoft.Diagnostics.Runtime.MacOS
 
                 switch (Architecture)
                 {
-                    case Architecture.X64:
+                    case Architecture.Amd64:
                         Unsafe.As<byte, x86_thread_state64_t>(ref MemoryMarshal.GetReference(buffer.AsSpan())).CopyContext(context);
                         break;
                     case Architecture.Arm64:
