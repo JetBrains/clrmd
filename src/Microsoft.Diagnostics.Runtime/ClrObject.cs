@@ -542,7 +542,7 @@ namespace Microsoft.Diagnostics.Runtime
         public bool Equals(ClrObject other) => Address == other.Address;
         public bool Equals(ClrValueType other) => Address == other.Address;
         public bool Equals(IClrValue? other) => other is not null && other.Address == Address;
-        public override bool Equals([NotNullWhen(true)] object? obj)
+        public override bool Equals(object? obj)
         {
             if (obj is IClrValue value)
                 return value.Equals(this);
@@ -599,14 +599,14 @@ namespace Microsoft.Diagnostics.Runtime
 
         IClrValue IClrValue.ReadValueTypeField(string fieldName) => ReadValueTypeField(fieldName);
 
-        bool IClrValue.TryReadObjectField(string fieldName, [NotNullWhen(true)] out IClrValue? result)
+        bool IClrValue.TryReadObjectField(string fieldName, out IClrValue? result)
         {
             bool res = TryReadObjectField(fieldName, out ClrObject obj);
             result = obj;
             return res;
         }
 
-        bool IClrValue.TryReadValueTypeField(string fieldName, [NotNullWhen(true)] out IClrValue? result)
+        bool IClrValue.TryReadValueTypeField(string fieldName, out IClrValue? result)
         {
             bool res = TryReadValueTypeField(fieldName, out ClrValueType val);
             result = val;

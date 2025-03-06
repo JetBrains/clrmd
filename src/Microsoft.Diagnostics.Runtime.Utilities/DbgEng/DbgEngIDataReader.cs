@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Diagnostics.Runtime.DataReaders.Implementation;
 
+
 namespace Microsoft.Diagnostics.Runtime.Utilities.DbgEng
 {
     public sealed class DbgEngIDataReader : IDataReader, IDisposable, IThreadReader

@@ -35,8 +35,8 @@ namespace Microsoft.Diagnostics.Runtime.Interfaces
         IClrType? GetTypeByMethodTable(ulong methodTable);
         IClrType? GetTypeByName(IClrModule module, string name);
         IClrType? GetTypeByName(string name);
-        bool IsObjectCorrupted(ulong objAddr, [NotNullWhen(true)] out IObjectCorruption? result);
-        bool IsObjectCorrupted(IClrValue obj, [NotNullWhen(true)] out IObjectCorruption? result);
+        bool IsObjectCorrupted(ulong objAddr, out IObjectCorruption? result);
+        bool IsObjectCorrupted(IClrValue obj, out IObjectCorruption? result);
         IEnumerable<IObjectCorruption> VerifyHeap();
         IEnumerable<IObjectCorruption> VerifyHeap(IEnumerable<IClrValue> objects);
     }

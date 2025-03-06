@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Diagnostics.Runtime.DataReaders.Implementation;
 using Microsoft.Diagnostics.Runtime.Utilities;
+using ProcessArchitecture = System.Runtime.InteropServices.Architecture;
 
 namespace Microsoft.Diagnostics.Runtime.MacOS
 {

@@ -47,7 +47,7 @@ namespace Microsoft.Diagnostics.Runtime.Interfaces
 
         bool TryReadField<T>(string fieldName, out T result) where T : unmanaged;
 
-        bool TryReadObjectField(string fieldName, [NotNullWhen(true)] out IClrValue? result);
-        bool TryReadValueTypeField(string fieldName, [NotNullWhen(true)] out IClrValue? result);
+        bool TryReadObjectField(string fieldName, out IClrValue? result);
+        bool TryReadValueTypeField(string fieldName, out IClrValue? result);
     }
 }

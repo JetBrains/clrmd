@@ -244,7 +244,7 @@ namespace Microsoft.Diagnostics.Runtime
         /// <param name="result">Only non-null if this function returns true.  An object which describes the
         /// kind of corruption found.</param>
         /// <returns>True if the object is corrupted in some way, false otherwise.</returns>
-        public bool IsObjectCorrupted(ulong objAddr, [NotNullWhen(true)] out ObjectCorruption? result)
+        public bool IsObjectCorrupted(ulong objAddr, out ObjectCorruption? result)
         {
             ClrObject obj = GetObject(objAddr);
             ClrSegment? seg = GetSegmentByAddress(objAddr);
@@ -313,7 +313,7 @@ namespace Microsoft.Diagnostics.Runtime
             return result;
         }
 
-        bool IClrHeap.IsObjectCorrupted(ulong obj, [NotNullWhen(true)] out IObjectCorruption? result)
+        bool IClrHeap.IsObjectCorrupted(ulong obj, out IObjectCorruption? result)
         {
             ObjectCorruption? corruption;
             bool r = IsObjectCorrupted(obj, out corruption);
@@ -321,7 +321,7 @@ namespace Microsoft.Diagnostics.Runtime
             return r;
         }
 
-        bool IClrHeap.IsObjectCorrupted(IClrValue obj, [NotNullWhen(true)] out IObjectCorruption? result)
+        bool IClrHeap.IsObjectCorrupted(IClrValue obj, out IObjectCorruption? result)
         {
             ObjectCorruption? corruption;
             bool r = IsObjectCorrupted(obj.Address, out corruption);

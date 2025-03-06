@@ -366,7 +366,7 @@ namespace Microsoft.Diagnostics.Runtime.Windows
             }
         }
 
-        private static unsafe int ResizeBytesForArray<T>(ulong count, [NotNull] ref byte[]? buffer)
+        private static unsafe int ResizeBytesForArray<T>(ulong count, ref byte[]? buffer)
             where T : unmanaged
         {
             int size = (int)count * sizeof(T);

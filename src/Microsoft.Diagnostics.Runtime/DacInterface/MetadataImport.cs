@@ -211,7 +211,7 @@ namespace Microsoft.Diagnostics.Runtime.DacInterface
             }
         }
 
-        public bool GetGenericParamProps(int token, out int index, out GenericParameterAttributes attributes, [NotNullWhen(true)] out string? name)
+        public bool GetGenericParamProps(int token, out int index, out GenericParameterAttributes attributes, out string? name)
         {
             // [NotNullWhen(true)] does not like returning HResult from this method
             name = null;

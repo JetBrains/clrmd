@@ -32,7 +32,6 @@ namespace Microsoft.Diagnostics.Runtime.Implementation
         private const char GenericArgListAssemblyQualifiedTypeNameOrArrayStartSpecifier = '[';
         private const char GenericArgListAssemblyQualifiedTypeNameOrArrayEndSpecifier = ']';
 
-        [return: NotNullIfNotNull(nameof(name))]
         public static string? Parse(string? name)
         {
             if (name == null)
