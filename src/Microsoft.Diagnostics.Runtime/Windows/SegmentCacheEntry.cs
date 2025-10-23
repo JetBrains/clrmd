@@ -11,7 +11,7 @@ namespace Microsoft.Diagnostics.Runtime.Windows
 
         public abstract int MinSize { get; }
 
-        public abstract int LastAccessTimestamp { get; }
+        public abstract long LastAccessTimestamp { get; }
 
         public abstract long PageOutData();
 

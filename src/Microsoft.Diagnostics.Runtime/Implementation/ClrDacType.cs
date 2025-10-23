@@ -299,7 +299,7 @@ namespace Microsoft.Diagnostics.Runtime.Implementation
                 }
             }
 
-            return objRef + (ulong)(_baseArrayOffset + index * ComponentSize);
+            return objRef + (ulong)_baseArrayOffset + (ulong)index * (ulong)ComponentSize;
         }
 
         public override T[]? ReadArrayElements<T>(ulong objRef, int start, int count)
