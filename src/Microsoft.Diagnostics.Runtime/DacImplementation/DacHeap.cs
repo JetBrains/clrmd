@@ -452,7 +452,7 @@ namespace Microsoft.Diagnostics.Runtime.DacImplementation
 
         internal static ThinLockLayout GetThinLockLayout(ClrFlavor flavor, Version version)
         {
-            if (flavor != ClrFlavor.Core)
+            if (flavor == ClrFlavor.Desktop)
                 return ThinLockLayout.Legacy;
 
             return version.Major switch
