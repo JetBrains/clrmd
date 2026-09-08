@@ -143,7 +143,7 @@ namespace Microsoft.Diagnostics.Runtime.Windows
             if (Interlocked.Read(ref _cacheSize) < _maxSize)
                 return;
 
-            IList<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, int LastAccessTimestamp)> entries = SnapshotNonMinSizeCacheItems();
+            IList<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, long LastAccessTimestamp)> entries = SnapshotNonMinSizeCacheItems();
             if (entries.Count == 0)
                 return;
 
@@ -226,10 +226,10 @@ namespace Microsoft.Diagnostics.Runtime.Windows
             }
         }
 
-        private IList<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, int LastAccessTimestamp)> SnapshotNonMinSizeCacheItems()
+        private IList<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, long LastAccessTimestamp)> SnapshotNonMinSizeCacheItems()
         {
-            IEnumerable<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, int LastAccessTimestamp)> items = null;
-            List<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, int LastAccessTimestamp)> entries = null;
+            IEnumerable<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, long LastAccessTimestamp)> items = null;
+            List<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, long LastAccessTimestamp)> entries = null;
 
             bool acquiredReadLock = false;
 
@@ -251,7 +251,7 @@ namespace Microsoft.Diagnostics.Runtime.Windows
             try
             {
                 items = _cache.Where((kvp) => kvp.Value.CurrentSize != kvp.Value.MinSize).Select((kvp) => (CacheEntry: kvp, kvp.Value.LastAccessTimestamp));
-                entries = new List<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, int LastAccessTimestamp)>(items);
+                entries = new List<(KeyValuePair<ulong, SegmentCacheEntry> CacheEntry, long LastAccessTimestamp)>(items);
             }
             finally
             {

@@ -19,7 +19,7 @@ namespace Microsoft.Diagnostics.Runtime.Windows
         protected CachePage<T>[] _pages;
         protected MinidumpSegment _segmentData;
         protected volatile int _entrySize;
-        private int _lastAccessTimestamp;
+        private long _lastAccessTimestamp;
         private readonly int _minSize;
         private readonly Action<uint> _updateOwningCacheForAddedChunk;
 
@@ -67,7 +67,7 @@ namespace Microsoft.Diagnostics.Runtime.Windows
             }
         }
 
-        public override int LastAccessTimestamp
+        public override long LastAccessTimestamp
         {
             get
             {
