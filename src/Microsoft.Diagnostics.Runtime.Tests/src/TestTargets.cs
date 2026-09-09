@@ -229,7 +229,6 @@ namespace Microsoft.Diagnostics.Runtime.Tests
                 FileLocator = src.FileLocator ?? InstalledRuntimeLocator.Instance,
                 SymbolPaths = src.SymbolPaths ?? [],
                 SymbolCachePath = src.SymbolCachePath,
-                SymbolTokenCredential = src.SymbolTokenCredential,
                 TraceSymbolRequests = src.TraceSymbolRequests,
                 Limits = src.Limits,
                 VerifyDacOnWindows = false,

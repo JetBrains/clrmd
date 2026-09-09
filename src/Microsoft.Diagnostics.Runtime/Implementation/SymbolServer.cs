@@ -9,38 +9,29 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Azure.Core;
-using Azure.Identity;
 
 namespace Microsoft.Diagnostics.Runtime.Implementation
 {
     internal sealed class SymbolServer : FileLocatorBase
     {
         public static readonly Uri Msdl = new("https://msdl.microsoft.com/download/symbols/");
-        public static readonly Uri SymwebHost = new("https://symweb.azurefd.net/");
-        private readonly TokenCredential? _tokenCredential;
-        private AccessToken _accessToken;
         private readonly FileSymbolCache _cache;
         private readonly bool _trace;
         private readonly HttpClient _http = new();
 
         public Uri Server { get; private set; }
-        private bool IsSymweb => Server.Host.Equals(SymwebHost.Host, StringComparison.OrdinalIgnoreCase);
 
-        internal SymbolServer(FileSymbolCache cache, string server, bool trace, TokenCredential? credential)
-            : this(cache, Sanitize(server), trace, credential)
+        internal SymbolServer(FileSymbolCache cache, string server, bool trace)
+            : this(cache, Sanitize(server), trace)
         {
         }
 
-        internal SymbolServer(FileSymbolCache cache, Uri server, bool trace, TokenCredential? credential)
+        internal SymbolServer(FileSymbolCache cache, Uri server, bool trace)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _trace = trace;
             Server = EnsureTrailingSlash(server);
-            _tokenCredential = credential;
 
-            if (IsSymweb)
-                _tokenCredential ??= new InteractiveBrowserCredential();
         }
 
         private static Uri Sanitize(string server)
@@ -111,7 +102,8 @@ namespace Microsoft.Diagnostics.Runtime.Implementation
             key = key.Replace('\\', '/').TrimStart('/');
             Uri fullPath = new(Server, key);
 
-            string? accessToken = IsSymweb ? await GetAccessTokenAsync().ConfigureAwait(false) : null;
+            // string? accessToken = IsSymweb ? await GetAccessTokenAsync().ConfigureAwait(false) : null;
+            string? accessToken = null;
             if (accessToken is not null)
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
             else
@@ -127,18 +119,6 @@ namespace Microsoft.Diagnostics.Runtime.Implementation
 
             response.Dispose();
             return null;
-        }
-
-
-        private async Task<string?> GetAccessTokenAsync()
-        {
-            if (_tokenCredential is null)
-                return null;
-
-            if (_accessToken.ExpiresOn <= DateTimeOffset.UtcNow.AddMinutes(2))
-                _accessToken = await _tokenCredential.GetTokenAsync(new TokenRequestContext(["api://af9e1c69-e5e9-4331-8cc5-cdf93d57bafa/.default"]), default).ConfigureAwait(false);
-
-            return _accessToken.Token;
         }
     }
 }

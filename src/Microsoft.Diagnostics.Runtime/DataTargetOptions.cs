@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Azure.Core;
 using Microsoft.Diagnostics.Runtime.Implementation;
 
 namespace Microsoft.Diagnostics.Runtime;
@@ -36,7 +35,7 @@ public class DataTargetOptions
                 Directory.CreateDirectory(SymbolCachePath);
                 FileSymbolCache cache = new(SymbolCachePath);
                 IEnumerable<SymbolServer> servers = SymbolPaths.Select(r =>
-                                                        new SymbolServer(cache, r, TraceSymbolRequests, SymbolTokenCredential));
+                                                        new SymbolServer(cache, r, TraceSymbolRequests));
                 field = new SymbolGroup(servers);
                 return field;
             }
@@ -77,11 +76,6 @@ public class DataTargetOptions
     /// ClrMD's discovery. Defaults to false.
     /// </summary>
     public bool SkipRuntimeEnumeration { get; set; }
-
-    /// <summary>
-    /// The TokenCredential to use for any Azure based symbol servers (set to null if not using one).
-    /// </summary>
-    public TokenCredential? SymbolTokenCredential { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether detailed information about symbol requests is traced during execution.
