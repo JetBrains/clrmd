@@ -94,7 +94,7 @@ namespace Microsoft.Diagnostics.Runtime.DacInterface
     /// </summary>
     [DebuggerDisplay("{_value,h}")]
     [StructLayout(LayoutKind.Sequential)]
-    internal readonly struct ClrDataAddress : IEquatable<ClrDataAddress>
+    public readonly struct ClrDataAddress : IEquatable<ClrDataAddress>
     {
         private readonly ulong _value;
 

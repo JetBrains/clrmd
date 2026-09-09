@@ -11,7 +11,7 @@ namespace Microsoft.Diagnostics.Runtime.DacInterface
     /// and passed to DAC wrappers. Future target-level facts (endianness, machine type, etc.)
     /// can be added here without re-plumbing every DAC wrapper.
     /// </summary>
-    internal sealed class TargetProperties
+    public sealed class TargetProperties
     {
         /// <summary>
         /// Creates target properties for the specified pointer size.

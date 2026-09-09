@@ -3,7 +3,7 @@
 
 namespace Microsoft.Diagnostics.Runtime.DacInterface
 {
-    internal enum ThinLockLayout
+    public enum ThinLockLayout
     {
         Legacy,
         Large,
